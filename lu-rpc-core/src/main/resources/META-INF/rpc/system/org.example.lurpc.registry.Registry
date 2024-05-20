@@ -1,0 +1,1 @@
+etcd=org.example.lurpc.registry.EtcdRegistry

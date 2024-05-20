@@ -1,0 +1,3 @@
+hessian=org.example.lurpc.serializer.HessianSerializer
+kryo=org.example.lurpc.serializer.KryoSerializer
+json=org.example.lurpc.serializer.JsonSerializer
