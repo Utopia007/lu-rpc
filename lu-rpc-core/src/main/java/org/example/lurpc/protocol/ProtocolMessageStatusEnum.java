@@ -10,17 +10,17 @@ import java.util.PrimitiveIterator;
  * @description: 协议消息的状态枚举
  */
 @Getter
-public enum protocolMessageStatusEnum {
+public enum ProtocolMessageStatusEnum {
 
     OK("ok", 20),
-    BAD_REQUEST("badrequest", 40),
-    BAD_RESPONSE("badresponse", 50);
+    BAD_REQUEST("badRequest", 40),
+    BAD_RESPONSE("badResponse", 50);
 
     private final String key;
 
     private final int value;
 
-    protocolMessageStatusEnum(String key, int value){
+    ProtocolMessageStatusEnum(String key, int value){
         this.key = key;
         this.value = value;
     }
@@ -30,8 +30,8 @@ public enum protocolMessageStatusEnum {
      * @param value
      * @return
      */
-    public static protocolMessageStatusEnum getEnumByValue(int value) {
-        for (protocolMessageStatusEnum anEnum : protocolMessageStatusEnum.values()) {
+    public static ProtocolMessageStatusEnum getEnumByValue(int value) {
+        for (ProtocolMessageStatusEnum anEnum : ProtocolMessageStatusEnum.values()) {
             if (anEnum.value == value) {
                 return anEnum;
             }

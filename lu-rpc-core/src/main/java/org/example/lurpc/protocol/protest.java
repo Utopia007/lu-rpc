@@ -8,7 +8,7 @@ package org.example.lurpc.protocol;
 public class protest {
 
     public static void main(String[] args) {
-        protocolMessageSerializeEnum.getValues();
+        ProtocolMessageSerializeEnum.getValues();
     }
 
 }

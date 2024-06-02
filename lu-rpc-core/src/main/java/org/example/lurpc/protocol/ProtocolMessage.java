@@ -15,10 +15,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProtocolMessage<T> {
 
+    /**
+     * 消息头
+     */
     private Header header;
 
+    /**
+     * 消息体（请求或响应对象）
+     */
     private T body;
 
+    /**
+     * 协议消息头
+     */
+    @Data
     public static class Header{
 
 //        魔数：作用是安全校验，防止服务器处理了非框架发来的乱七八糟的消息（类似 HTTPS 的安全证书）
@@ -55,12 +65,12 @@ public class ProtocolMessage<T> {
         /**
          * 请求id
          */
-        private byte requestId;
+        private long requestId;
 
         /**
          * 消息体长度
          */
-        private byte bodyLength;
+        private int bodyLength;
 
     }
 

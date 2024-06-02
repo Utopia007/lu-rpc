@@ -9,7 +9,7 @@ import lombok.Getter;
  * @description: 协议消息的类型枚举
  */
 @Getter
-public enum protocolMessageTypeEnum {
+public enum ProtocolMessageTypeEnum {
 
     REQUEST(0),
     RESPONSE(1),
@@ -18,12 +18,12 @@ public enum protocolMessageTypeEnum {
 
     private final int key;
 
-    protocolMessageTypeEnum(int key) {
+    ProtocolMessageTypeEnum(int key) {
         this.key = key;
     }
 
-    public static protocolMessageTypeEnum getEnumByKey(int key) {
-        for (protocolMessageTypeEnum anEnum : protocolMessageTypeEnum.values()) {
+    public static ProtocolMessageTypeEnum getEnumByKey(int key) {
+        for (ProtocolMessageTypeEnum anEnum : ProtocolMessageTypeEnum.values()) {
             if (anEnum.key == key) {
                 return anEnum;
             }

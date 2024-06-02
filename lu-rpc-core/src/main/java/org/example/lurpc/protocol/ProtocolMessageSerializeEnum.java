@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * @description: 协议消息的序列化枚举
  */
 @Getter
-public enum protocolMessageSerializeEnum {
+public enum ProtocolMessageSerializeEnum {
 
     JDK(0, "jdk"),
     JSON(1, "json"),
@@ -23,7 +23,7 @@ public enum protocolMessageSerializeEnum {
 
     private final String value;
 
-    protocolMessageSerializeEnum(int key, String value) {
+    ProtocolMessageSerializeEnum(int key, String value) {
         this.key = key;
         this.value = value;
     }
@@ -37,8 +37,8 @@ public enum protocolMessageSerializeEnum {
      * @param key
      * @return
      */
-    public static protocolMessageSerializeEnum getEnumByKey(int key) {
-        for (protocolMessageSerializeEnum anEnum : protocolMessageSerializeEnum.values()) {
+    public static ProtocolMessageSerializeEnum getEnumByKey(int key) {
+        for (ProtocolMessageSerializeEnum anEnum : ProtocolMessageSerializeEnum.values()) {
             if (anEnum.key == key) {
                 return anEnum;
             }
@@ -51,8 +51,8 @@ public enum protocolMessageSerializeEnum {
      * @param value
      * @return
      */
-    public static protocolMessageSerializeEnum getEnumByValue(String value) {
-        for (protocolMessageSerializeEnum anEnum : protocolMessageSerializeEnum.values()) {
+    public static ProtocolMessageSerializeEnum getEnumByValue(String value) {
+        for (ProtocolMessageSerializeEnum anEnum : ProtocolMessageSerializeEnum.values()) {
             if (anEnum.value.equals(value)) {
                 return anEnum;
             }

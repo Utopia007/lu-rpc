@@ -35,6 +35,6 @@ public class VertxHttpServer implements HttpServer{
                 System.out.println("失败@@@ = " + result.cause());
             }
         });
-
     }
+
 }

@@ -5,7 +5,7 @@ package org.example.lurpc.protocol;
  * @Create: 2024/4/30 20:18
  * @description: 协议常量
  */
-public class protocolConstant {
+public interface ProtocolConstant {
 
     /**
      * 消息头长度   8+8+8+8+8+64+32
@@ -15,12 +15,12 @@ public class protocolConstant {
     /**
      * 协议魔数
      */
-    int PROTOCOL_MAGIC = 0x1;
+    byte PROTOCOL_MAGIC = 0x1;
 
     /**
      * 协议版本号
      */
-    int PROTOCOL_VERSION = 0x1;
+    byte PROTOCOL_VERSION = 0x1;
 
 
 

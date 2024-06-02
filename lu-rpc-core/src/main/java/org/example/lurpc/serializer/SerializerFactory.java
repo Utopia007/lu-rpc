@@ -37,7 +37,6 @@ public class SerializerFactory {
      */
     public static Serializer getInstance(String key){
 
-
         // 懒加载 serialize
 //        SpiLoader.load(Serializer.class);
 

@@ -90,7 +90,7 @@ public class SpiLoader {
                         if (strArray.length > 1) {
                             String key = strArray[0];
                             String className = strArray[1];
-                            System.out.println("key = " + key + "         className = " + className);
+                            System.out.println("key = " + key + "， className = " + className);
                             keyClassMap.put(key, Class.forName(className));
                         }
                     }
@@ -113,6 +113,7 @@ public class SpiLoader {
      */
     public static <T> T getInstance(Class<?> tClass, String key) {
         String tClassName = tClass.getName();
+        System.out.println("1  tClassName = " + tClassName);
         Map<String, Class<?>> keyClassMap = loaderMap.get(tClassName);
         if (keyClassMap == null) {
             throw new RuntimeException(String.format("SpiLoader 未加载 %s 类型", tClassName));
