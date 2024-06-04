@@ -1,0 +1,3 @@
+roundRobin=org.example.lurpc.loadbalancer.RoundRobinLoadBalancer
+random=org.example.lurpc.loadbalancer.RandomLoadBalancer
+consistentHash=org.example.lurpc.loadbalancer.ConsistentHashLoadBalancer
