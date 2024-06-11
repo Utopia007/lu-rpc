@@ -5,10 +5,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
 import org.example.lurpc.model.RpcRequest;
 import org.example.lurpc.model.RpcResponse;
-import org.example.lurpc.protocol.ProtocolMessage;
-import org.example.lurpc.protocol.ProtocolMessageDecoder;
-import org.example.lurpc.protocol.ProtocolMessageEncoder;
-import org.example.lurpc.protocol.ProtocolMessageTypeEnum;
+import org.example.lurpc.protocol.*;
 import org.example.lurpc.registry.LocalRegistry;
 
 import java.io.IOException;
@@ -42,18 +39,23 @@ public class TCPServerHandler implements Handler<NetSocket> {
             // 获取要调用的服务实现类，通过反射调用
             try {
                 Class<?> implClass = LocalRegistry.get(rpcRequest.getServiceName());
-                Method method = implClass.getMethod(rpcRequest.getServiceName(), rpcRequest.getParameterTypes());
-                Object invoke = method.invoke(implClass.getDeclaredConstructor().newInstance());
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException |
-                     InstantiationException e) {
+                Method method = implClass.getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());
+                Object invoke = method.invoke(implClass.newInstance(), rpcRequest.getArgs());
+                // 封装返回结果
+                response.setData(invoke);
+                response.setDataType(method.getReturnType());
+                response.setMessage("ok");
+            } catch (Exception e) {
                 e.printStackTrace();
-                response.setMessage("错误调用" + e.getMessage());
+                response.setMessage("错误调用," + e.getMessage());
                 response.setException(e);
             }
 
             // 发送响应，编码
-            ProtocolMessage.Header header = new ProtocolMessage<>().getHeader();
+//            ProtocolMessage.Header header = new ProtocolMessage<>().getHeader();
+            ProtocolMessage.Header header = protocolMessage.getHeader();
             header.setType((byte) ProtocolMessageTypeEnum.RESPONSE.getKey());
+            header.setStatus((byte) ProtocolMessageStatusEnum.OK.getValue());
             ProtocolMessage<RpcResponse> rpcResponseProtocolMessage = new ProtocolMessage<>(header, response);
             try {
                 Buffer encode = ProtocolMessageEncoder.encode(rpcResponseProtocolMessage);

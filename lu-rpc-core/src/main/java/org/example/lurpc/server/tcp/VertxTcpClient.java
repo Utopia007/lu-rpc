@@ -22,34 +22,6 @@ import java.util.concurrent.ExecutionException;
  */
 public class VertxTcpClient {
 
-    public void start() {
-        // 创建 Vert.x 实例
-        Vertx vertx = Vertx.vertx();
-
-
-        vertx.createNetClient().connect(8888, "localhost", result -> {
-            if (result.succeeded()) {
-                System.out.println("Connected to TCP server");
-                io.vertx.core.net.NetSocket socket = result.result();
-                for (int i = 0; i < 1000; i++) {
-                    // 发送数据
-                    Buffer buffer = Buffer.buffer();
-                    String str = "Hello, server!Hello, server!Hello, server!Hello, server!";
-                    buffer.appendInt(0);
-                    buffer.appendInt(str.getBytes().length);
-                    buffer.appendBytes(str.getBytes());
-                    socket.write(buffer);
-                }
-                // 接收响应
-                socket.handler(buffer -> {
-                    System.out.println("Received response from server: " + buffer.toString());
-                });
-            } else {
-                System.err.println("Failed to connect to TCP server");
-            }
-        });
-    }
-
     /**
      * 发送请求
      *
@@ -62,16 +34,17 @@ public class VertxTcpClient {
     public static RpcResponse doRequest(RpcRequest rpcRequest, ServiceMetaInfo serviceMetaInfo) throws InterruptedException, ExecutionException {
         Vertx vertx = Vertx.vertx();
         NetClient netClient = vertx.createNetClient();
+        // 由于 Vert.x 提供的请求处理器是异步、反应式的，我们为了更方便地获取结果，可以使用 CompletableFuture 转异步为同步
         CompletableFuture<RpcResponse> responseFuture = new CompletableFuture<>();
         netClient.connect(serviceMetaInfo.getServicePort(), serviceMetaInfo.getServiceHost(), result -> {
             if (!result.succeeded()) {
-                System.out.println("Failed to connect to TCP server");
+                System.err.println("Failed to connect to TCP server");
                 return;
             }
             NetSocket socket = result.result();
             // 发送数据
             // 构造消息
-            ProtocolMessage<Object> protocolMessage = new ProtocolMessage<>();
+            ProtocolMessage<RpcRequest> protocolMessage = new ProtocolMessage<>();
             ProtocolMessage.Header header = new ProtocolMessage.Header();
             header.setMagic(ProtocolConstant.PROTOCOL_MAGIC);
             header.setVersion(ProtocolConstant.PROTOCOL_VERSION);
@@ -98,14 +71,41 @@ public class VertxTcpClient {
             });
             socket.handler(tcpBufferHandlerWrapper);
         });
-        RpcResponse response = responseFuture.get();
+        RpcResponse rpcResponse = responseFuture.get();
         // 关闭连接
         netClient.close();
-        return response;
+        return rpcResponse;
     }
 
-    public static void main(String[] args) {
-        new VertxTcpClient().start();
-    }
+//    public static void main(String[] args) {
+//        new VertxTcpClient().start();
+//    }
+
+//    public void start() {
+//        // 创建 Vert.x 实例
+//        Vertx vertx = Vertx.vertx();
+//
+//        vertx.createNetClient().connect(8888, "localhost", result -> {
+//            if (result.succeeded()) {
+//                System.out.println("Connected to TCP server");
+//                io.vertx.core.net.NetSocket socket = result.result();
+//                for (int i = 0; i < 1000; i++) {
+//                    // 发送数据
+//                    Buffer buffer = Buffer.buffer();
+//                    String str = "Hello, server!Hello, server!Hello, server!Hello, server!";
+//                    buffer.appendInt(0);
+//                    buffer.appendInt(str.getBytes().length);
+//                    buffer.appendBytes(str.getBytes());
+//                    socket.write(buffer);
+//                }
+//                // 接收响应
+//                socket.handler(buffer -> {
+//                    System.out.println("Received response from server: " + buffer.toString());
+//                });
+//            } else {
+//                System.err.println("Failed to connect to TCP server");
+//            }
+//        });
+//    }
 
 }

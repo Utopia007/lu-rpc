@@ -11,6 +11,9 @@ import io.vertx.core.net.NetSocket;
 import org.example.lurpc.RpcApplication;
 import org.example.lurpc.config.RpcConfig;
 import org.example.lurpc.constant.RpcConstant;
+import org.example.lurpc.loadbalancer.LoadBalancer;
+import org.example.lurpc.loadbalancer.LoadBalancerFactory;
+import org.example.lurpc.loadbalancer.LoadBalancerKeys;
 import org.example.lurpc.model.RpcRequest;
 import org.example.lurpc.model.RpcResponse;
 import org.example.lurpc.model.ServiceMetaInfo;
@@ -25,6 +28,7 @@ import javax.xml.transform.Result;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,7 +52,7 @@ public class ServiceProxy implements InvocationHandler {
         // 构造请求
         String serviceName = method.getDeclaringClass().getName();
         RpcRequest rpcRequest = RpcRequest.builder()
-                .serviceName(method.getDeclaringClass().getName())
+                .serviceName(serviceName)
                 .methodName(method.getName())
                 .parameterTypes(method.getParameterTypes())
                 .args(args)
@@ -68,9 +72,14 @@ public class ServiceProxy implements InvocationHandler {
                 throw new RuntimeException("暂无服务地址");
             }
 
-            // todo 从注册中心获取到的服务节点地址可能是多个。暂时先取第一个，之后再优化
-            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
-
+            // 从注册中心获取到的服务节点地址可能是多个。暂时先取第一个，之后再优化
+//            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
+            // 负载均衡
+            LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(rpcConfig.getLoadBalancer());
+            // 将调用方法名（请求路径）作为负载均衡参数
+            HashMap<String, Object> requestParams = new HashMap<>();
+            requestParams.put("methodName", rpcRequest.getMethodName());
+            ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
             // 发送TCP请求
             RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
             return rpcResponse.getData();
@@ -90,7 +99,7 @@ public class ServiceProxy implements InvocationHandler {
 //                }
 //            }
         } catch (Exception e) {
-            throw new RuntimeException("调用失败");
+            throw new RuntimeException("调用失败",e);
         }
     }
 

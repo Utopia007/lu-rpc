@@ -23,6 +23,12 @@ public class TcpBufferHandlerWrapper implements Handler<Buffer> {
         recordParser.handle(buffer);
     }
 
+    /**
+     * 初始化解析器
+     *
+     * @param bufferHandler
+     * @return
+     */
     private RecordParser initRecordParser(Handler<Buffer> bufferHandler) {
         // 创建一个RecordParser实例，使用newFixed(8)指定每次处理8字节的数据块。RecordParser用于处理数据流，帮助解决粘包问题
         RecordParser parser = RecordParser.newFixed(ProtocolConstant.MESSAGE_HEADER_LENGTH);
@@ -51,7 +57,7 @@ public class TcpBufferHandlerWrapper implements Handler<Buffer> {
                     // 已拼接为完整Buffer，执行处理
                     bufferHandler.handle(resultBuffer);
                     // 重置一轮
-                    parser.fixedSizeMode(8);
+                    parser.fixedSizeMode(ProtocolConstant.MESSAGE_HEADER_LENGTH);
                     size = -1;
                     resultBuffer = Buffer.buffer();
                 }
