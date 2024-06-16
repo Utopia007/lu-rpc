@@ -1,4 +1,4 @@
-package org.example.lurpc.retry;
+package org.example.lurpc.fault.retry;
 
 import org.example.lurpc.spi.SpiLoader;
 

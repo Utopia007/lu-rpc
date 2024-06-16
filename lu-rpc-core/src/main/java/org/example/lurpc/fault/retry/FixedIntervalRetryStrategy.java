@@ -1,11 +1,10 @@
-package org.example.lurpc.retry;
+package org.example.lurpc.fault.retry;
 
 import com.github.rholder.retry.*;
 import lombok.extern.slf4j.Slf4j;
 import org.example.lurpc.model.RpcResponse;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
