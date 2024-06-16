@@ -1,11 +1,9 @@
 package org.example.lurpc.config;
 
 import lombok.Data;
-import org.example.lurpc.loadbalancer.LoadBalancer;
+import org.example.lurpc.fault.tolerant.TolerantStrategyKeys;
 import org.example.lurpc.loadbalancer.LoadBalancerKeys;
-import org.example.lurpc.loadbalancer.RoundRobinLoadBalancer;
-import org.example.lurpc.retry.RetryStrategy;
-import org.example.lurpc.retry.RetryStrategyKeys;
+import org.example.lurpc.fault.retry.RetryStrategyKeys;
 import org.example.lurpc.serializer.SerializerKeys;
 
 /**
@@ -60,5 +58,10 @@ public class RpcConfig {
      * 重试器
      */
     private String retryStrategy = RetryStrategyKeys.NO;
+
+    /**
+     * 容错机制
+     */
+    private String tolerantStrategy = TolerantStrategyKeys.FAIL_FAST;
 
 }

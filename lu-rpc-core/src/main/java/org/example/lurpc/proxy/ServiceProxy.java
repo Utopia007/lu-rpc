@@ -1,38 +1,28 @@
 package org.example.lurpc.proxy;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetSocket;
 import org.example.lurpc.RpcApplication;
 import org.example.lurpc.config.RpcConfig;
 import org.example.lurpc.constant.RpcConstant;
+import org.example.lurpc.fault.tolerant.TolerantStrategy;
+import org.example.lurpc.fault.tolerant.TolerantStrategyFactory;
 import org.example.lurpc.loadbalancer.LoadBalancer;
 import org.example.lurpc.loadbalancer.LoadBalancerFactory;
-import org.example.lurpc.loadbalancer.LoadBalancerKeys;
 import org.example.lurpc.model.RpcRequest;
 import org.example.lurpc.model.RpcResponse;
 import org.example.lurpc.model.ServiceMetaInfo;
-import org.example.lurpc.protocol.*;
 import org.example.lurpc.registry.Registry;
 import org.example.lurpc.registry.RegistryFactory;
-import org.example.lurpc.retry.RetryStrategy;
-import org.example.lurpc.retry.RetryStrategyFactory;
+import org.example.lurpc.fault.retry.RetryStrategy;
+import org.example.lurpc.fault.retry.RetryStrategyFactory;
 import org.example.lurpc.serializer.Serializer;
 import org.example.lurpc.serializer.SerializerFactory;
 import org.example.lurpc.server.tcp.VertxTcpClient;
 
-import javax.xml.transform.Result;
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @auther : LuYouxiao
@@ -59,34 +49,36 @@ public class ServiceProxy implements InvocationHandler {
                 .parameterTypes(method.getParameterTypes())
                 .args(args)
                 .build();
-        try {
-            // 序列化
-//            byte[] bodyBytes = serializer.serialize(rpcRequest);
 
-            // 从注册中心获取服务提供者请求地址
-            RpcConfig rpcConfig = RpcApplication.getRpcConfig();
-            Registry registry = RegistryFactory.getInstance(rpcConfig.getRegistryConfig().getRegistry());
-            ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
-            serviceMetaInfo.setServiceName(serviceName);
-            serviceMetaInfo.setServiceVersion(RpcConstant.DEFAULT_SERVICE_VERSION);
-            List<ServiceMetaInfo> serviceMetaInfoList = registry.serviceDiscovery(serviceMetaInfo.getServerKey());
-            if (CollUtil.isEmpty(serviceMetaInfoList)) {
-                throw new RuntimeException("暂无服务地址");
-            }
+        // 序列化
+        // byte[] bodyBytes = serializer.serialize(rpcRequest);
 
-            // 从注册中心获取到的服务节点地址可能是多个。暂时先取第一个，之后再优化
+        // 从注册中心获取服务提供者请求地址
+        RpcConfig rpcConfig = RpcApplication.getRpcConfig();
+        Registry registry = RegistryFactory.getInstance(rpcConfig.getRegistryConfig().getRegistry());
+        ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
+        serviceMetaInfo.setServiceName(serviceName);
+        serviceMetaInfo.setServiceVersion(RpcConstant.DEFAULT_SERVICE_VERSION);
+        List<ServiceMetaInfo> serviceMetaInfoList = registry.serviceDiscovery(serviceMetaInfo.getServerKey());
+        if (CollUtil.isEmpty(serviceMetaInfoList)) {
+            throw new RuntimeException("暂无服务地址");
+        }
+
+        // 从注册中心获取到的服务节点地址可能是多个。暂时先取第一个，之后再优化
 //            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
-            // 负载均衡
-            LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(rpcConfig.getLoadBalancer());
-            // 将调用方法名（请求路径）作为负载均衡参数
-            HashMap<String, Object> requestParams = new HashMap<>();
-            requestParams.put("methodName", rpcRequest.getMethodName());
-            ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
+        // 负载均衡
+        LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(rpcConfig.getLoadBalancer());
+        // 将调用方法名（请求路径）作为负载均衡参数
+        HashMap<String, Object> requestParams = new HashMap<>();
+        requestParams.put("methodName", rpcRequest.getMethodName());
+        ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
 
-            // TCP请求
-            // 使用重试机制
+        // TCP请求
+        // 使用重试机制
+        RpcResponse rpcResponse;
+        try {
             RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
-            RpcResponse rpcResponse = retryStrategy.doRetry(() ->
+            rpcResponse = retryStrategy.doRetry(() ->
                     VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
             );
 //            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
@@ -107,8 +99,11 @@ public class ServiceProxy implements InvocationHandler {
 //                }
 //            }
         } catch (Exception e) {
-            throw new RuntimeException("调用失败",e);
+            // 容错机制
+            TolerantStrategy tolerantStrategy = TolerantStrategyFactory.getInstance(rpcConfig.getTolerantStrategy());
+            rpcResponse = tolerantStrategy.doTolerant(null, e);
         }
+        return rpcResponse.getData();
     }
 
 }
