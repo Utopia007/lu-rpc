@@ -20,6 +20,8 @@ import org.example.lurpc.model.ServiceMetaInfo;
 import org.example.lurpc.protocol.*;
 import org.example.lurpc.registry.Registry;
 import org.example.lurpc.registry.RegistryFactory;
+import org.example.lurpc.retry.RetryStrategy;
+import org.example.lurpc.retry.RetryStrategyFactory;
 import org.example.lurpc.serializer.Serializer;
 import org.example.lurpc.serializer.SerializerFactory;
 import org.example.lurpc.server.tcp.VertxTcpClient;
@@ -80,8 +82,14 @@ public class ServiceProxy implements InvocationHandler {
             HashMap<String, Object> requestParams = new HashMap<>();
             requestParams.put("methodName", rpcRequest.getMethodName());
             ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
-            // 发送TCP请求
-            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
+
+            // TCP请求
+            // 使用重试机制
+            RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
+            RpcResponse rpcResponse = retryStrategy.doRetry(() ->
+                    VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
+            );
+//            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
             return rpcResponse.getData();
 
             // 发送 http 请求
@@ -103,24 +111,4 @@ public class ServiceProxy implements InvocationHandler {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-

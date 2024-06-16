@@ -4,6 +4,8 @@ import lombok.Data;
 import org.example.lurpc.loadbalancer.LoadBalancer;
 import org.example.lurpc.loadbalancer.LoadBalancerKeys;
 import org.example.lurpc.loadbalancer.RoundRobinLoadBalancer;
+import org.example.lurpc.retry.RetryStrategy;
+import org.example.lurpc.retry.RetryStrategyKeys;
 import org.example.lurpc.serializer.SerializerKeys;
 
 /**
@@ -53,5 +55,10 @@ public class RpcConfig {
      * 负载均衡器
      */
     private String loadBalancer = LoadBalancerKeys.ROUND_ROBIN;
+
+    /**
+     * 重试器
+     */
+    private String retryStrategy = RetryStrategyKeys.NO;
 
 }
