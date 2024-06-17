@@ -20,6 +20,7 @@ public class ProviderExampleForTCP {
     public static void main(String[] args) {
         // RPC 框架初始化
         RpcApplication.init();
+//        RpcApplication.getRpcConfig();
 
         // 注册服务
         String serviceName = UserService.class.getName();
@@ -41,7 +42,7 @@ public class ProviderExampleForTCP {
 
         // 启动 TCP 服务
         VertxTCPServer vertxTCPServer = new VertxTCPServer();
-        vertxTCPServer.doStart(8080);
+        vertxTCPServer.doStart(8888);
     }
 
 }
